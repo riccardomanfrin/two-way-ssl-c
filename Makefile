@@ -27,25 +27,25 @@ CFLAGS=-g -ggdb
 
 RSALEN=4096
 
-all: build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) 
-
-$(ROOTCA):
-	openssl genrsa -out rootCAKey.pem $(RSASTRENGTH)
+all: build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) $(KEY_PATH)
 
 build: client.h server.h
 	$(CC) $(CFLAGS) -o openssl main.c client.c server.c $(LDFLAGS)
 
+$(KEY_PATH):
+	mkdir -p $(KEY_PATH)
+	chmod 700 -R $(KEY_PATH)
 
-$(CA_KEY):
+$(CA_KEY): $(KEY_PATH)
 	openssl genrsa -out $(CA_KEY) $(RSASTRENGTH)
 
-$(CA_CERT): $(CA_KEY)
+$(CA_CERT): $(CA_KEY) $(KEY_PATH)
 	openssl req -x509 -sha256 -new -nodes -key $(CA_KEY) -days 3650 -out $(CA_CERT) -subj $(CA_SUBJECT)
 
-$(S_KEY):
+$(S_KEY): $(KEY_PATH)
 	openssl genrsa -out $(S_KEY) $(RSASTRENGTH)
 
-$(S_CERT): $(S_KEY) $(CA_CERT)
+$(S_CERT): $(S_KEY) $(CA_CERT) $(KEY_PATH)
 	# Create sign request
 	openssl req -new -key $(S_KEY) -out $(KEY_PATH)s_signreq.csr -subj $(S_SUBJECT)
 	# Validate it
@@ -55,10 +55,10 @@ $(S_CERT): $(S_KEY) $(CA_CERT)
 	# Validate it
 	#openssl x509 -in $(CA_CERT) -text -noout
 
-$(C_KEY):
+$(C_KEY): $(KEY_PATH)
 	openssl genrsa -out $(C_KEY) $(RSASTRENGTH)
 
-$(C_CERT): $(C_KEY) $(CA_CERT)
+$(C_CERT): $(C_KEY) $(CA_CERT) $(KEY_PATH)
 		# Create sign request
 	openssl req -new -key $(C_KEY) -out $(KEY_PATH)c_signreq.csr -subj $(C_SUBJECT)
 	# Validate it
