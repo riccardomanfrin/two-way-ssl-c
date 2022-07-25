@@ -14,13 +14,13 @@ CA_SUBJECT="$(SUBJECT_BLOB)$(CA_DOMAIN)"
 #Server certificate and key
 S_KEY=$(KEY_PATH)server_key.pem
 S_CERT=$(KEY_PATH)server_cert.pem
-S_DOMAIN=localhost
+S_DOMAIN=server.localhost
 S_SUBJECT="$(SUBJECT_BLOB)$(S_DOMAIN)"
 
 #Client certificate and key
 C_KEY=$(KEY_PATH)client_key.pem
 C_CERT=$(KEY_PATH)client_cert.pem
-C_DOMAIN=localhost
+C_DOMAIN=client.localhost
 C_SUBJECT="$(SUBJECT_BLOB)$(C_DOMAIN)"
 
 CFLAGS=-g -ggdb
