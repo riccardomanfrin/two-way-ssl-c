@@ -83,7 +83,7 @@ static HostnameValidationResult matches_subject_alternative_name(const char *hos
 	STACK_OF(GENERAL_NAME) *san_names = NULL;
 
 	// Try to extract the names within the SAN extension from the certificate
-	san_names = X509_get_ext_d2i((X509 *) server_cert, NID_subject_alt_name, NULL, NULL);
+	san_names = (STACK_OF(GENERAL_NAME) *) X509_get_ext_d2i((X509 *) server_cert, NID_subject_alt_name, NULL, NULL);
 	if (san_names == NULL) {
 		return NoSANPresent;
 	}
