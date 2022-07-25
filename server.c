@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "server.h"
 
@@ -177,7 +178,7 @@ int server(const char *port_str, const char *ca_pem,
 
         /* Now perform handshake */
         if ((rc = SSL_accept(ssl)) != 1) {
-            fprintf(stderr, "Could not perform SSL handshake\n");
+            fprintf(stderr, "Could not perform SSL handshake: %i, %s\n", rc, strerror(errno));
             if (rc != 0) {
                 SSL_shutdown(ssl);
             }
