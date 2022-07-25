@@ -8,13 +8,13 @@ KEY_PATH=keys/
 #Self signed root certificate authority
 CA_KEY=$(KEY_PATH)ca_key.pem
 CA_CERT=$(KEY_PATH)ca_cert.pem
-CA_DOMAIN=localhost
+CA_DOMAIN=ca.localhost
 CA_SUBJECT="$(SUBJECT_BLOB)$(CA_DOMAIN)"
 
 #Server certificate and key
 S_KEY=$(KEY_PATH)server_key.pem
 S_CERT=$(KEY_PATH)server_cert.pem
-S_DOMAIN=server.localhost
+S_DOMAIN=localhost
 S_SUBJECT="$(SUBJECT_BLOB)$(S_DOMAIN)"
 
 #Client certificate and key
@@ -30,7 +30,7 @@ RSALEN=4096
 all: build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) $(KEY_PATH)
 
 build: client.h server.h
-	$(CC) $(CFLAGS) -o openssl main.c client.c server.c $(LDFLAGS)
+	$(CC) $(CFLAGS) -o openssl main.c client.c server.c openssl_hostname_validation.c $(LDFLAGS)
 
 $(KEY_PATH):
 	mkdir -p $(KEY_PATH)

@@ -13,6 +13,7 @@
 #include <string.h>
 
 #include "client.h"
+#include "openssl_hostname_validation.h"
 
 #define BUFSIZE 128
 
@@ -68,11 +69,20 @@ fail:
     return NULL;
 }
 
+int get_host(const char *conn_str, char host[]) {
+    strcpy(host, conn_str);
+    strtok(host, ":");
+    return 0;
+}
+
 int client(const char *conn_str, const char *ca_pem,
            const char *cert_pem, const char *key_pem) {
     static char buffer[BUFSIZE];
+    static char target_host[BUFSIZE];
+    get_host(conn_str, target_host);
     SSL_CTX *ctx;
     BIO *sbio;
+    X509 *server_cert;
     SSL *ssl;
     size_t len;
     /* Failure till we know it's a success */
@@ -113,6 +123,22 @@ int client(const char *conn_str, const char *ca_pem,
         fprintf(stderr, "Verification of handshake failed\n");
         goto fail2;
     }
+
+    server_cert =  SSL_get_peer_certificate(ssl);
+    if (server_cert == NULL) {
+        // The handshake was successful although the server did not provide a certificate
+        // Most likely using an insecure anonymous cipher suite... get out!
+        fprintf(stderr, "Failed to retrieve server certificate\n");
+        goto fail2;
+    }
+
+    
+    // Validate the hostname
+    if (validate_hostname(target_host, server_cert) != MatchFound) {
+        fprintf(stderr, "Hostname validation failed.\n");
+        goto fail2;
+    }
+
 
     /* Inform the user that we've successfully connected */
     printf("SSL handshake successful with %s\n", conn_str);
