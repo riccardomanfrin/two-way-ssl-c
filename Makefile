@@ -23,23 +23,23 @@ C_DOMAIN=localhost
 C_SUBJECT="$(SUBJECT_BLOB)$(C_DOMAIN)"
 
 
-all: build $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) 
+all: build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) 
+
+$(ROOTCA):
+	openssl genrsa -out rootCAKey.pem 2048
 
 build: client.h server.h
 	$(CC) $(CFLAGS) -o openssl main.c client.c server.c $(LDFLAGS)
 
-$(CA_CERT):
-	openssl req \
-	    -x509 \
-	    -nodes \
-	    -days 3650 \
-	    -newkey rsa:4096 \
-	    -keyout $(CA_KEY) \
-	    -out $(CA_CERT) \
-	    -subj $(CA_SUBJECT)
+
+$(CA_KEY):
+	openssl genrsa -out $(CA_KEY) 2048
+
+$(CA_CERT): $(CA_KEY)
+	openssl req -x509 -sha256 -new -nodes -key $(CA_KEY) -days 3650 -out $(CA_CERT) -subj $(CA_SUBJECT)
 
 $(S_KEY):
-	openssl genrsa -out $(S_KEY) 4096
+	openssl genrsa -out $(S_KEY) 2048
 
 $(S_CERT): $(S_KEY) $(CA_CERT)
 	# Create sign request
@@ -52,7 +52,7 @@ $(S_CERT): $(S_KEY) $(CA_CERT)
 	#openssl x509 -in $(CA_CERT) -text -noout
 
 $(C_KEY):
-	openssl genrsa -out $(C_KEY) 4096
+	openssl genrsa -out $(C_KEY) 2048
 
 $(C_CERT): $(C_KEY) $(CA_CERT)
 		# Create sign request
