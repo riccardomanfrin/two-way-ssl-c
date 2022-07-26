@@ -131,8 +131,7 @@ const SSLSocket * SSLSocket::accept() {
     struct sockaddr_in sin;
     socklen_t sin_len;
     int net_fd, rc;
-    SSL_CTX *accepted_ctx;
-    SSL *accepted_ssl;
+    SSL *accepted_ssl = NULL;
 
     
     /* Hold on till we can an incoming connection */
@@ -145,7 +144,7 @@ const SSLSocket * SSLSocket::accept() {
     }
 
     /* Get an SSL handle from the context */
-    if (!(accepted_ssl = SSL_new(accepted_ctx))) {
+    if (!(accepted_ssl = SSL_new(ctx))) {
         fprintf(stderr, "Could not get an SSL handle from the context\n");
         close(net_fd);
         return NULL;
@@ -168,17 +167,17 @@ const SSLSocket * SSLSocket::accept() {
     printf("SSL handshake successful with %s:%d\n",
                 inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
     
-    return new SSLSocket(accepted_ssl, accepted_ctx);
+    return new SSLSocket(accepted_ssl, ctx);
 }
 
-int const SSLSocket::send(const uint8_t *data, uint32_t len) {
+int SSLSocket::send(const uint8_t *data, uint32_t len) const{
     int rc = 0;
     if ((rc = SSL_write(ssl, (const char *) data, (int) len)) != len) {
         fprintf(stderr, "Cannot write to the server\n");
     }
     return rc;
 }
-int const SSLSocket::recv(uint8_t *data, uint32_t &len) {
+int SSLSocket::recv(uint8_t *data, uint32_t &len) const {
     int rc = 0;
     if ((rc = SSL_read(ssl, data, len)) < 0) {
         fprintf(stderr, "Cannot read from the server\n");

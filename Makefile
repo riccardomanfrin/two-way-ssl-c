@@ -73,7 +73,7 @@ clean:
 	rm -f *.o core openssl keys/*
 
 start_server:
-	./openssl server 8888 $(CA_CERT) $(S_CERT) $(S_KEY)
+	./openssl server localhost:8888 $(CA_CERT) $(S_CERT) $(S_KEY)
 
 start_client:
 	./openssl client localhost:8888 $(CA_CERT) $(C_CERT) $(C_KEY)

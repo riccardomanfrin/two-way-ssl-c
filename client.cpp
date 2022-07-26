@@ -14,7 +14,7 @@
 
 #define BUFSIZE 128
 
-int get_host_port(const char *conn_str, std::string &addr , uint16_t &port) {
+static int get_host_port(const char *conn_str, std::string &addr , uint16_t &port) {
     char buff[BUFSIZE];
     strcpy(buff, conn_str);
     addr = std::string(strtok(buff, ":"));
@@ -25,7 +25,7 @@ int get_host_port(const char *conn_str, std::string &addr , uint16_t &port) {
 int client(const char *conn_str, const char *ca_pem,
            const char *cert_pem, const char *key_pem) {
     char buffer[BUFSIZE];
-    uint32_t len = BUFSIZE;
+    uint32_t len;
     std::string host;
     uint16_t port;
     get_host_port(conn_str, host, port);
@@ -36,6 +36,7 @@ int client(const char *conn_str, const char *ca_pem,
         int res = s.send((const uint8_t *) buffer, strlen(buffer));
         fprintf(stderr, "Sent %i\n", res);
         memset(buffer, 0, BUFSIZE);
+        len = BUFSIZE;
         s.recv((uint8_t *) buffer, len);
         fprintf(stderr, "Recv %s\n", buffer);
     }

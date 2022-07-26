@@ -13,8 +13,8 @@ public:
     int connect();
     int listen();
     const SSLSocket *accept();
-    int const send(const uint8_t *data, uint32_t len);
-    int const recv(uint8_t *data, uint32_t &len);
+    int send(const uint8_t *data, uint32_t len) const;
+    int recv(uint8_t *data, uint32_t &len) const;
 
 private:
     SSLSocket(SSL *accepted_ssl, SSL_CTX *accepted_ctx);
