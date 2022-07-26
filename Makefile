@@ -1,6 +1,6 @@
 CC = /usr/bin/g++
 CFLAGS = -Wall -Werror -g
-LDFLAGS = -lcrypto -lssl
+LDFLAGS = -lcrypto -lssl -lresolv
 
 SUBJECT_BLOB=/C=IT/ST=Padova/L=Padova/O=Global Security/OU=IT Department/CN=
 KEY_PATH=keys/
@@ -73,7 +73,7 @@ clean:
 	rm -f *.o core openssl keys/*
 
 start_server:
-	./openssl server localhost:8888 $(CA_CERT) $(S_CERT) $(S_KEY)
+	./openssl server 127.0.0.1:8888 $(CA_CERT) $(S_CERT) $(S_KEY)
 
 start_client:
 	./openssl client localhost:8888 $(CA_CERT) $(C_CERT) $(C_KEY)

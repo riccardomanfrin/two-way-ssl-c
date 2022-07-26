@@ -9,7 +9,7 @@
 
 static SSL_CTX *get_server_context(std::string &ca_cert, std::string &client_cert, std::string &client_key);
 static SSL_CTX *get_client_context(std::string &ca_cert, std::string &client_cert, std::string &client_key);
-static int get_socket(int port_num);
+static int get_socket(const std::string &addr, int port_num);
 
 SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert)
     : addr(_addr)
@@ -121,7 +121,7 @@ int SSLSocket::listen() {
     }
 
     /* Get a socket which is ready to listen on the server's port number */
-    if ((listen_fd = get_socket(port)) < 0) {
+    if ((listen_fd = get_socket(addr, port)) < 0) {
         return -1;
     }
     return 0;
@@ -186,7 +186,7 @@ int SSLSocket::recv(uint8_t *data, uint32_t &len) const {
     return rc;
 }
 
-static int get_socket(int port_num) {
+static int get_socket(const std::string &addr, int port_num) {
     struct sockaddr_in sin;
     int sock, val;
 
@@ -205,7 +205,8 @@ static int get_socket(int port_num) {
     /* Fill up the server's socket structure */
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = INADDR_ANY;
+    //sin.sin_addr.s_addr = INADDR_ANY;
+    inet_net_pton(AF_INET, addr.c_str(), (void*) &sin.sin_addr, sizeof(sin.sin_addr));
     sin.sin_port = htons(port_num);
 
     /* Bind the socket to the specified port number */
