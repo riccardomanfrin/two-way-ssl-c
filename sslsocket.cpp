@@ -1,8 +1,13 @@
 #include "sslsocket.h"
 #include <openssl/bio.h>
 #include <openssl/x509v3.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 
+static SSL_CTX *get_server_context(std::string &ca_cert, std::string &client_cert, std::string &client_key);
 static SSL_CTX *get_client_context(std::string &ca_cert, std::string &client_cert, std::string &client_key);
 
 SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert)
@@ -109,6 +114,103 @@ int SSLSocket::recv(uint8_t *data, uint32_t &len) {
     len = (uint32_t) rc;
     return rc;
 }
+
+static int get_socket(int port_num) {
+    struct sockaddr_in sin;
+    int sock, val;
+
+    /* Create a socket */
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        fprintf(stderr, "Cannot create a socket\n");
+        return -1;
+    }
+
+    /* We don't want bind() to fail with EBUSY */
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val)) < 0) {
+        fprintf(stderr, "Could not set SO_REUSEADDR on the socket\n");
+        goto fail;
+    }
+
+    /* Fill up the server's socket structure */
+    memset(&sin, 0, sizeof(sin));
+    sin.sin_family = AF_INET;
+    sin.sin_addr.s_addr = INADDR_ANY;
+    sin.sin_port = htons(port_num);
+
+    /* Bind the socket to the specified port number */
+    if (bind(sock, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+        fprintf(stderr, "Could not bind the socket\n");
+        goto fail;
+    }
+
+    /* Specify that this is a listener socket */
+    if (listen(sock, SOMAXCONN) < 0) {
+        fprintf(stderr, "Failed to listen on this socket\n");
+        goto fail;
+    }
+
+    /* Done, return the socket */
+    return sock;
+fail:
+    close(sock);
+    return -1;
+}
+
+static SSL_CTX *get_server_context(std::string &ca_cert, std::string &client_cert, std::string &client_key) {
+    SSL_CTX *ctx;
+
+    /* Get a default context */
+    if (!(ctx = SSL_CTX_new(SSLv23_server_method()))) {
+        fprintf(stderr, "SSL_CTX_new failed\n");
+        return NULL;
+    }
+
+    /* Set the CA file location for the server */
+    if (SSL_CTX_load_verify_locations(ctx, ca_cert.c_str(), NULL) != 1) {
+        fprintf(stderr, "Could not set the CA file location\n");
+        goto fail;
+    }
+
+    /* Load the client's CA file location as well */
+    SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file(ca_cert.c_str()));
+
+    /* Set the server's certificate signed by the CA */
+    if (SSL_CTX_use_certificate_file(ctx, client_cert.c_str(), SSL_FILETYPE_PEM) != 1) {
+        fprintf(stderr, "Could not set the server's certificate\n");
+        goto fail;
+    }
+
+    /* Set the server's key for the above certificate */
+    if (SSL_CTX_use_PrivateKey_file(ctx, client_key.c_str(), SSL_FILETYPE_PEM) != 1) {
+        fprintf(stderr, "Could not set the server's key\n");
+        goto fail;
+    }
+
+    /* We've loaded both certificate and the key, check if they match */
+    if (SSL_CTX_check_private_key(ctx) != 1) {
+        fprintf(stderr, "Server's certificate and the key don't match\n");
+        goto fail;
+    }
+
+    /* We won't handle incomplete read/writes due to renegotiation */
+    SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
+
+    /* Specify that we need to verify the client as well */
+    SSL_CTX_set_verify(ctx,
+                       SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+                       NULL);
+
+    /* We accept only certificates signed only by the CA himself */
+    SSL_CTX_set_verify_depth(ctx, 1);
+
+    /* Done, return the context */
+    return ctx;
+
+fail:
+    SSL_CTX_free(ctx);
+    return NULL;
+}
+
 
 static SSL_CTX *get_client_context(std::string &ca_cert, std::string &client_cert, std::string &client_key) {
     SSL_CTX *ctx;
