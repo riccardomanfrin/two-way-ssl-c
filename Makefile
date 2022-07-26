@@ -30,7 +30,7 @@ RSALEN=4096
 all: build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) $(KEY_PATH)
 
 build: client.h server.h
-	$(CC) $(CFLAGS) -o openssl main.cpp sslsocket.cpp client.cpp server.c $(LDFLAGS)
+	$(CC) $(CFLAGS) -o openssl main.cpp sslsocket.cpp client.cpp server.cpp $(LDFLAGS)
 
 $(KEY_PATH):
 	mkdir -p $(KEY_PATH)
