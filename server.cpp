@@ -39,7 +39,12 @@ int server(const char *conn_str, const char *ca_pem,
         len = BUFSIZE;
         accepted->recv((uint8_t *) buffer, len);
         fprintf(stderr, "Recv %i\n", len);
+        if (len == 0) {
+            fprintf(stderr, "Client closed connection\n");
+            return -1;
+        }
         int res = accepted->send((const uint8_t *) buffer, len);
         fprintf(stderr, "Sent %i\n", res);
     }
+    return (0);
 }

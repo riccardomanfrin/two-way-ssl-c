@@ -14,16 +14,16 @@ static int get_socket(int port_num);
 SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert)
     : addr(_addr)
     , port(_port)
-    , ca_cert(_ca_cert)
+    , ca(_ca_cert)
 {
 }
 
 SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert, std::string _client_cert, std::string _client_key) 
     : addr(_addr)
     , port(_port)
-    , ca_cert(_ca_cert)
-    , client_cert(_client_cert)
-    , client_key(_client_key)
+    , ca(_ca_cert)
+    , cert(_client_cert)
+    , key(_client_key)
 {   
 }
 SSLSocket::SSLSocket(SSL *accepted_ssl, SSL_CTX *accepted_ctx)
@@ -57,7 +57,7 @@ int SSLSocket::connect() {
     OpenSSL_add_ssl_algorithms();
 
     /* Get a context */
-    if (!(ctx = get_client_context(ca_cert, client_cert, client_key))) {
+    if (!(ctx = get_client_context(ca, cert, key))) {
         return rc;
     }
 
@@ -116,7 +116,7 @@ int SSLSocket::listen() {
     OpenSSL_add_ssl_algorithms();
 
     /* Get a server context for our use */
-    if (!(ctx = get_server_context(ca_cert, client_cert, client_key))) {
+    if (!(ctx = get_server_context(ca, cert, key))) {
         return -1;
     }
 
