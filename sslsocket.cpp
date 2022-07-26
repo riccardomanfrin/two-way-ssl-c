@@ -43,23 +43,34 @@ SSLSocket::SSLSocket(SSL *accepted_ssl, SSL_CTX *accepted_ctx)
 
 SSLSocket::~SSLSocket()
 {
+	close();
+}
+
+int
+SSLSocket::close()
+{
+	if (listen_fd > 0)
+		::close(listen_fd);
 	if (ssl) {
 		SSL_shutdown(ssl);
 		SSL_free(ssl);
+		ssl = NULL;
 	}
 	if (sbio) {
 		BIO_ssl_shutdown(sbio);
 		BIO_free_all(sbio);
+		sbio = NULL;
 	}
-	if (ctx)
+	if (ctx) {
 		SSL_CTX_free(ctx);
+		ctx = NULL;
+	}
+	return (0);
 }
 
 int
 SSLSocket::connect()
 {
-	X509 *server_cert;
-	size_t len;
 	/* Failure till we know it's a success */
 	int rc = -1;
 	const char *conn_str =
@@ -112,9 +123,8 @@ SSLSocket::connect()
 
 	return (0);
 
-fail3:
-	BIO_ssl_shutdown(sbio);
 fail2:
+	BIO_ssl_shutdown(sbio);
 	BIO_free_all(sbio);
 fail1:
 	SSL_CTX_free(ctx);
@@ -159,7 +169,7 @@ SSLSocket::accept()
 	/* Get an SSL handle from the context */
 	if (!(accepted_ssl = SSL_new(ctx))) {
 		fprintf(stderr, "Could not get an SSL handle from the context\n");
-		close(net_fd);
+		::close(net_fd);
 		return (NULL);
 	}
 
@@ -191,7 +201,7 @@ int
 SSLSocket::send(const uint8_t *data, uint32_t len) const
 {
 	int rc = 0;
-	if ((rc = SSL_write(ssl, (const char *) data, (int) len)) != len) {
+	if ((rc = SSL_write(ssl, (const char *) data, (int) len)) != (int) len) {
 		fprintf(stderr, "Cannot write to the server\n");
 	}
 	return (rc);
@@ -416,7 +426,7 @@ matches_common_name(const char *hostname, const X509 *server_cert)
 	common_name_str = (char *) ASN1_STRING_get0_data(common_name_asn1);
 
 	// Make sure there isn't an embedded NUL character in the CN
-	if (ASN1_STRING_length(common_name_asn1) != strlen(common_name_str)) {
+	if (ASN1_STRING_length(common_name_asn1) != (int) strlen(common_name_str)) {
 		return (MalformedCertificate);
 	}
 
@@ -465,7 +475,7 @@ matches_subject_alternative_name(const char *hostname, const X509 *server_cert)
 
 			// Make sure there isn't an embedded NUL character in the DNS name
 			if (ASN1_STRING_length(current_name->d.dNSName) !=
-					strlen(dns_name)) {
+					(int) strlen(dns_name)) {
 				result = MalformedCertificate;
 				break;
 			} else { // Compare expected hostname with the DNS name

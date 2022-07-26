@@ -12,6 +12,7 @@ public:
 	SSLSocket(std::string addr, uint16_t port, std::string ca_cert,
 			std::string client_cert, std::string client_key);
 	~SSLSocket();
+	int close();
 	int connect();
 	int listen();
 	const SSLSocket *accept();
@@ -23,7 +24,7 @@ private:
 	int validate_hostname(const char *hostname);
 
 private:
-	int listen_fd;
+	int listen_fd = -1;
 	// Config
 	std::string addr;
 	uint16_t port;
