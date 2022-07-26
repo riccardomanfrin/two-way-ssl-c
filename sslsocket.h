@@ -12,13 +12,16 @@ public:
     ~SSLSocket();
     int connect();
     int listen();
+    const SSLSocket *accept();
     int const send(const uint8_t *data, uint32_t len);
-    int recv(uint8_t *data, uint32_t &len);
+    int const recv(uint8_t *data, uint32_t &len);
 
 private:
+    SSLSocket(SSL *accepted_ssl, SSL_CTX *accepted_ctx);
     int validate_hostname(const char *hostname);
 
 private:
+    int listen_fd;
     //Config
     std::string addr;
     uint16_t port;

@@ -9,6 +9,7 @@
 
 static SSL_CTX *get_server_context(std::string &ca_cert, std::string &client_cert, std::string &client_key);
 static SSL_CTX *get_client_context(std::string &ca_cert, std::string &client_cert, std::string &client_key);
+static int get_socket(int port_num);
 
 SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert)
     : addr(_addr)
@@ -25,9 +26,18 @@ SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert, st
     , client_key(_client_key)
 {   
 }
+SSLSocket::SSLSocket(SSL *accepted_ssl, SSL_CTX *accepted_ctx)
+    : ssl(accepted_ssl)
+    , ctx(accepted_ctx)
+{
+}
 
 SSLSocket::~SSLSocket()
 {
+    if (ssl) {
+        SSL_shutdown(ssl);
+        SSL_free(ssl);
+    }
     if (sbio) {
         BIO_ssl_shutdown(sbio);
         BIO_free_all(sbio);
@@ -99,6 +109,68 @@ fail1:
     return rc;
 }
 
+int SSLSocket::listen() {
+
+    /* Initialize OpenSSL */
+    SSL_load_error_strings();
+    OpenSSL_add_ssl_algorithms();
+
+    /* Get a server context for our use */
+    if (!(ctx = get_server_context(ca_cert, client_cert, client_key))) {
+        return -1;
+    }
+
+    /* Get a socket which is ready to listen on the server's port number */
+    if ((listen_fd = get_socket(port)) < 0) {
+        return -1;
+    }
+    return 0;
+}
+
+const SSLSocket * SSLSocket::accept() {
+    struct sockaddr_in sin;
+    socklen_t sin_len;
+    int net_fd, rc;
+    SSL_CTX *accepted_ctx;
+    SSL *accepted_ssl;
+
+    
+    /* Hold on till we can an incoming connection */
+    sin_len = sizeof(sin);
+    if ((net_fd = ::accept(listen_fd,
+                            (struct sockaddr *) &sin,
+                            &sin_len)) < 0) {
+        fprintf(stderr, "Failed to accept connection\n");
+        
+    }
+
+    /* Get an SSL handle from the context */
+    if (!(accepted_ssl = SSL_new(accepted_ctx))) {
+        fprintf(stderr, "Could not get an SSL handle from the context\n");
+        close(net_fd);
+        return NULL;
+    }
+
+    /* Associate the newly accepted connection with this handle */
+    SSL_set_fd(accepted_ssl, net_fd);
+
+    /* Now perform handshake */
+    if ((rc = SSL_accept(accepted_ssl)) != 1) {
+        fprintf(stderr, "Could not perform SSL handshake: %i, %s\n", rc, strerror(errno));
+        if (rc != 0) {
+            SSL_shutdown(accepted_ssl);
+        }
+        SSL_free(accepted_ssl);
+        return NULL;
+    }
+
+    /* Print success connection message on the server */
+    printf("SSL handshake successful with %s:%d\n",
+                inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+    
+    return new SSLSocket(accepted_ssl, accepted_ctx);
+}
+
 int const SSLSocket::send(const uint8_t *data, uint32_t len) {
     int rc = 0;
     if ((rc = SSL_write(ssl, (const char *) data, (int) len)) != len) {
@@ -106,7 +178,7 @@ int const SSLSocket::send(const uint8_t *data, uint32_t len) {
     }
     return rc;
 }
-int SSLSocket::recv(uint8_t *data, uint32_t &len) {
+int const SSLSocket::recv(uint8_t *data, uint32_t &len) {
     int rc = 0;
     if ((rc = SSL_read(ssl, data, len)) < 0) {
         fprintf(stderr, "Cannot read from the server\n");
