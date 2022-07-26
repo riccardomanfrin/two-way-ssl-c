@@ -1,3 +1,9 @@
+/*
+ *  sslsocket.cpp
+ *
+ *  OpenSSL based server/client socket wrapper
+ */
+
 #include "sslsocket.h"
 #include <openssl/bio.h>
 #include <openssl/x509v3.h>
