@@ -84,12 +84,13 @@ Socket::connect()
 
 	/* Get a context */
 	if (!(ctx = get_client_context(ca, cert, key))) {
+		fprintf(stderr, "SSL connect failure: could not get context from certificates\n");
 		return (rc);
 	}
 
 	/* Get a BIO */
 	if (!(sbio = BIO_new_ssl_connect(ctx))) {
-		fprintf(stderr, "Could not get a BIO object from context\n");
+		fprintf(stderr, "SSL connect failure: Could not get a BIO object from context\n");
 		goto fail1;
 	}
 
@@ -98,7 +99,7 @@ Socket::connect()
 
 	/* Connect to the server */
 	if (BIO_set_conn_hostname(sbio, conn_str) != 1) {
-		fprintf(stderr, "Could not connecto to the server\n");
+		fprintf(stderr, "SSL Connection to server failed\n");
 		goto fail2;
 	}
 
@@ -215,7 +216,13 @@ Socket::recv(uint8_t *data, uint32_t &len) const
 	if ((rc = SSL_read(ssl, data, len)) < 0) {
 		fprintf(stderr, "Cannot read from the server\n");
 	}
-	len = (uint32_t) rc;
+	
+	if (rc > 0) {
+		len = (uint32_t) rc;
+	} else {
+		len = 0;
+	}
+
 	return (rc);
 }
 
@@ -339,21 +346,21 @@ get_client_context(
 
 	/* Load the client's CA file location */
 	if (SSL_CTX_load_verify_locations(ctx, ca_cert.c_str(), NULL) != 1) {
-		fprintf(stderr, "Cannot load client's CA file\n");
+		fprintf(stderr, "Cannot load client's CA file %s\n", ca_cert.c_str());
 		goto fail;
 	}
 
 	/* Load the client's certificate */
 	if (SSL_CTX_use_certificate_file(
 				ctx, client_cert.c_str(), SSL_FILETYPE_PEM) != 1) {
-		fprintf(stderr, "Cannot load client's certificate file\n");
+		fprintf(stderr, "Cannot load client's certificate file %s\n", client_cert.c_str());
 		goto fail;
 	}
 
 	/* Load the client's key */
 	if (SSL_CTX_use_PrivateKey_file(
 				ctx, client_key.c_str(), SSL_FILETYPE_PEM) != 1) {
-		fprintf(stderr, "Cannot load client's key file\n");
+		fprintf(stderr, "Cannot load client's key file %s\n", client_key.c_str());
 		goto fail;
 	}
 
