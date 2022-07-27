@@ -22,10 +22,10 @@ make
 
 ### Server
 ```
-./openssl server 8888 ./keys/ca/ca_cert.pem ./keys/server/server_cert.pem ./keys/server/private/server_key.pem
+make start_server
 ```
 
 ### Client
 ```
-./openssl client 127.0.0.1:8888 ./keys/ca/ca_cert.pem ./keys/client/client_cert.pem ./keys/client/private/client_key.pem
+make start_client
 ```
