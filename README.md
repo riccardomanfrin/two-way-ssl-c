@@ -5,9 +5,8 @@ and the server.
 
 There are a couple of things to be noted here:
 
-1. Hostname verification is not performed. If you want to perform it, you should take a look at [this repository](https://github.com/iSECPartners/ssl-conservatory).
-2. Don't plugin this code directly into multi-threaded applications, you need to call some additional routines so that OpenSSL routines become reentrant.
-3. You can generate the keys by looking at [this gist](https://gist.github.com/zapstar/4b51d7cfa74c7e709fcdaace19233443).
+1. Don't plugin this code directly into multi-threaded applications, you need to call some additional routines so that OpenSSL routines become reentrant.
+2. You can generate the keys by looking at [this gist](https://gist.github.com/zapstar/4b51d7cfa74c7e709fcdaace19233443).
 
 ## Steps to run the example
 
@@ -15,17 +14,21 @@ There are a couple of things to be noted here:
 * Any decent C compiler
 * OpenSSL development library
 
-### Build
-```
-make
-```
+### Build (keys and code)
+
+    make
+
+### Build (code only)
+
+    make build
+
 
 ### Server
-```
-make start_server
-```
+
+    make start_server
+
 
 ### Client
-```
-make start_client
-```
+
+    make start_client
+
