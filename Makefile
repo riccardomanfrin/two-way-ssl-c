@@ -14,7 +14,7 @@ CA_SUBJECT="$(SUBJECT_BLOB)$(CA_DOMAIN)"
 #Server certificate and key
 S_KEY=$(KEY_PATH)server_key.pem
 S_CERT=$(KEY_PATH)server_cert.pem
-S_DOMAIN=localhost
+S_DOMAIN="127.0.0.1"
 S_SUBJECT="$(SUBJECT_BLOB)$(S_DOMAIN)"
 
 #Client certificate and key
@@ -76,4 +76,4 @@ start_server:
 	./openssl server 127.0.0.1:8888 $(CA_CERT) $(S_CERT) $(S_KEY)
 
 start_client:
-	./openssl client localhost:8888 $(CA_CERT) $(C_CERT) $(C_KEY)
+	./openssl client 127.0.0.1:8888 $(CA_CERT) $(C_CERT) $(C_KEY)

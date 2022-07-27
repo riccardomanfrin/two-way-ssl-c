@@ -22,6 +22,9 @@ There are a couple of things to be noted here:
 
     make build
 
+### Change server domain
+
+Modify `S_DOMAIN=localhost` in `Makefile`
 
 ### Server
 
