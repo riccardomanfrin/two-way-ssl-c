@@ -32,9 +32,9 @@ int server(const char *conn_str, const char *ca_pem,
     std::string host;
     uint16_t port;
     get_host_port(conn_str, host, port);
-    SSLSocket s(host, port, std::string(ca_pem), std::string(cert_pem), std::string(key_pem));
+    Ssl::Socket s(host, port, std::string(ca_pem), std::string(cert_pem), std::string(key_pem));
     s.listen();
-    const SSLSocket *accepted = s.accept();
+    const Ssl::Socket *accepted = s.accept();
     while (true) {
         len = BUFSIZE;
         accepted->recv((uint8_t *) buffer, len);

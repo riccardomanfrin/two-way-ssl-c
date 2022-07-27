@@ -29,7 +29,7 @@ int client(const char *conn_str, const char *ca_pem,
     std::string host;
     uint16_t port;
     get_host_port(conn_str, host, port);
-    SSLSocket s(host, port, std::string(ca_pem), std::string(cert_pem), std::string(key_pem));
+    Ssl::Socket s(host, port, std::string(ca_pem), std::string(cert_pem), std::string(key_pem));
     s.connect();
     while (true) {
         fgets(buffer, BUFSIZE, stdin);

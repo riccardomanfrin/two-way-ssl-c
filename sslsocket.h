@@ -1,26 +1,29 @@
-#ifndef __SSLSocket_h__
-#define __SSLSocket_h__
+#ifndef __Socket_h__
+#define __Socket_h__
 
 #include <stdlib.h>
 #include <openssl/ssl.h>
 #include <string>
 
-class SSLSocket
+namespace Ssl
+{
+
+class Socket
 {
 public:
-	SSLSocket(std::string addr, uint16_t port, std::string ca_cert);
-	SSLSocket(std::string addr, uint16_t port, std::string ca_cert,
+	Socket(std::string addr, uint16_t port, std::string ca_cert);
+	Socket(std::string addr, uint16_t port, std::string ca_cert,
 			std::string client_cert, std::string client_key);
-	~SSLSocket();
+	~Socket();
 	int close();
 	int connect();
 	int listen();
-	const SSLSocket *accept();
+	const Socket *accept();
 	int send(const uint8_t *data, uint32_t len) const;
 	int recv(uint8_t *data, uint32_t &len) const;
 
 private:
-	SSLSocket(SSL *accepted_ssl, SSL_CTX *accepted_ctx);
+	Socket(SSL *accepted_ssl, SSL_CTX *accepted_ctx);
 	int validate_hostname(const char *hostname);
 
 private:
@@ -36,5 +39,7 @@ private:
 	SSL_CTX *ctx = NULL;
 	BIO *sbio = NULL;
 };
+
+}; // namespace Ssl
 
 #endif

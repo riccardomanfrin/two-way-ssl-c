@@ -1,5 +1,5 @@
 /*
- *  sslsocket.cpp
+ *  Socket.cpp
  *
  *  OpenSSL based server/client socket wrapper
  */
@@ -19,14 +19,16 @@ static SSL_CTX *get_client_context(std::string &ca_cert,
 		std::string &client_cert, std::string &client_key);
 static int get_socket(const std::string &addr, int port_num);
 
-SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert)
+using namespace Ssl;
+
+Socket::Socket(std::string _addr, uint16_t _port, std::string _ca_cert)
 	: addr(_addr)
 	, port(_port)
 	, ca(_ca_cert)
 {
 }
 
-SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert,
+Socket::Socket(std::string _addr, uint16_t _port, std::string _ca_cert,
 		std::string _client_cert, std::string _client_key)
 	: addr(_addr)
 	, port(_port)
@@ -35,19 +37,19 @@ SSLSocket::SSLSocket(std::string _addr, uint16_t _port, std::string _ca_cert,
 	, key(_client_key)
 {
 }
-SSLSocket::SSLSocket(SSL *accepted_ssl, SSL_CTX *accepted_ctx)
+Socket::Socket(SSL *accepted_ssl, SSL_CTX *accepted_ctx)
 	: ssl(accepted_ssl)
 	, ctx(accepted_ctx)
 {
 }
 
-SSLSocket::~SSLSocket()
+Socket::~Socket()
 {
 	close();
 }
 
 int
-SSLSocket::close()
+Socket::close()
 {
 	if (listen_fd > 0)
 		::close(listen_fd);
@@ -69,7 +71,7 @@ SSLSocket::close()
 }
 
 int
-SSLSocket::connect()
+Socket::connect()
 {
 	/* Failure till we know it's a success */
 	int rc = -1;
@@ -132,7 +134,7 @@ fail1:
 }
 
 int
-SSLSocket::listen()
+Socket::listen()
 {
 
 	/* Initialize OpenSSL */
@@ -151,8 +153,8 @@ SSLSocket::listen()
 	return (0);
 }
 
-const SSLSocket *
-SSLSocket::accept()
+const Socket *
+Socket::accept()
 {
 	struct sockaddr_in sin;
 	socklen_t sin_len;
@@ -194,11 +196,11 @@ SSLSocket::accept()
 			inet_ntoa(sin.sin_addr),
 			ntohs(sin.sin_port));
 
-	return new SSLSocket(accepted_ssl, ctx);
+	return new Socket(accepted_ssl, ctx);
 }
 
 int
-SSLSocket::send(const uint8_t *data, uint32_t len) const
+Socket::send(const uint8_t *data, uint32_t len) const
 {
 	int rc = 0;
 	if ((rc = SSL_write(ssl, (const char *) data, (int) len)) != (int) len) {
@@ -207,7 +209,7 @@ SSLSocket::send(const uint8_t *data, uint32_t len) const
 	return (rc);
 }
 int
-SSLSocket::recv(uint8_t *data, uint32_t &len) const
+Socket::recv(uint8_t *data, uint32_t &len) const
 {
 	int rc = 0;
 	if ((rc = SSL_read(ssl, data, len)) < 0) {
@@ -503,7 +505,7 @@ matches_subject_alternative_name(const char *hostname, const X509 *server_cert)
  * embedded in it. Returns Error if there was an error.
  */
 int
-SSLSocket::validate_hostname(const char *hostname)
+Socket::validate_hostname(const char *hostname)
 {
 	const X509 *server_cert = SSL_get_peer_certificate(ssl);
 	if (server_cert == NULL) {
