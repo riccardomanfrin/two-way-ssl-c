@@ -5,7 +5,7 @@ certsPath = '../keys'
 defmodule Toppage do
   def init(req, stuff) do
     IO.inspect {req, stuff}
-    :cowboy_req.cert(req) |> IO.inspect()
+    :cowboy_req.cert(req)
     req = :cowboy_req.reply(200, %{
         "content-type" => "text/plain"
       }, "Hello World!", req)
@@ -19,12 +19,13 @@ dispatch = :cowboy_router.compile([
   ]}
 ])
 
-name = :example
+[port, sleepseconds | _dontcare] = System.argv()
 
+name = :example
 {:ok, _} = :cowboy.start_tls(name,
   [
     ip: {127,0,0,1}, #bind to 127.0.0.1 only
-    port: 8443,
+    port: String.to_integer(port),
     cacertfile: certsPath ++ '/ca_cert.pem',
     certfile: certsPath ++ '/server_cert.pem',
     keyfile: certsPath ++ '/server_key.pem',
@@ -52,4 +53,4 @@ IO.puts(
   curl -v --cert ../keys/client_cert.pem --key ../keys/client_key.pem --cacert ../keys/ca_cert.pem https://127.0.0.1:8443
   """)
 
-Process.sleep(10000)
+Process.sleep(String.to_integer(sleepseconds) * 1000)
