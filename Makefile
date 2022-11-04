@@ -39,7 +39,7 @@ $(KEY_PATH):
 	chmod 700 -R $(KEY_PATH)
 
 $(P12): $(C_CERT) $(C_KEY) $(CA_CERT)
-	openssl pkcs12 -export -out client.p12 -inkey $(C_KEY) -in $(C_CERT) -certfile $(CA_CERT) -passout pass:$(P12PASS)
+	openssl pkcs12 -export -out $(P12) -inkey $(C_KEY) -in $(C_CERT) -certfile $(CA_CERT) -passout pass:$(P12PASS)
 
 
 $(CA_KEY): $(KEY_PATH)
