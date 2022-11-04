@@ -22,12 +22,14 @@ C_KEY=$(KEY_PATH)client_key.pem
 C_CERT=$(KEY_PATH)client_cert.pem
 C_DOMAIN=client.localhost
 C_SUBJECT="$(SUBJECT_BLOB)$(C_DOMAIN)"
+P12=$(KEY_PATH)client.p12
+P12PASS=foo
 
 CFLAGS=-g -ggdb
 
 RSALEN=4096
 
-all: build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) $(KEY_PATH)
+all: build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) $(KEY_PATH) $(P12)
 
 build: client.h server.h
 	$(CC) $(CFLAGS) -o openssl main.cpp sslsocket.cpp client.cpp server.cpp $(LDFLAGS)
@@ -35,6 +37,10 @@ build: client.h server.h
 $(KEY_PATH):
 	mkdir -p $(KEY_PATH)
 	chmod 700 -R $(KEY_PATH)
+
+$(P12): $(C_CERT) $(C_KEY) $(CA_CERT)
+	openssl pkcs12 -export -out client.p12 -inkey $(C_KEY) -in $(C_CERT) -certfile $(CA_CERT) -passout pass:$(P12PASS)
+
 
 $(CA_KEY): $(KEY_PATH)
 	openssl genrsa -out $(CA_KEY) $(RSASTRENGTH)
