@@ -3,9 +3,10 @@ Mix.install([{:cowboy, "~> 2.9.0"}])
 certsPath = '../keys'
 
 defmodule Toppage do
-  def init(req, stuff) do
-    IO.inspect {req, stuff}
-    :cowboy_req.cert(req)
+  def init(req, userctx) do
+    #IO.inspect {req, userctx}
+    client_cert = :cowboy_req.cert(req) #|> IO.inspect(limit: :infinity)
+    :public_key.pem_decode(client_cert) #|> IO.inspect()
     req = :cowboy_req.reply(200, %{
         "content-type" => "text/plain"
       }, "Hello World!", req)
@@ -29,8 +30,16 @@ name = :example
     cacertfile: certsPath ++ '/ca_cert.pem',
     certfile: certsPath ++ '/server_cert.pem',
     keyfile: certsPath ++ '/server_key.pem',
-    verify: :verify_peer  #you need this for :cowboy_req.cert to not return :undefined
+    fail_if_no_peer_cert: true,
+    verify: :verify_peer, #you need this for :cowboy_req.cert to not return :undefined
                           #https://ninenines.eu/docs/en/cowboy/2.9/manual/cowboy_req.cert/
+    verify_fun: {fn
+        (_, {:bad_cert, :selfsigned_peer}, userState) -> {:fail, "No self signed certs allowed"}; # Allow self-signed certificates
+        (_,{:bad_cert, _} = reason, _) -> {:fail, reason};
+        (_,{:extension, _}, userState) -> {:unknown, userState};
+        (_, :valid, userState) -> {:fail, "Peer not validated"};
+        (_, :valid_peer, userState) -> {:valid, userState}
+      end, []}
   ],
   %{env: %{dispatch: dispatch}})
 
