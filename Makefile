@@ -1,8 +1,8 @@
 CC = /usr/bin/g++
 CFLAGS = -Wall -Werror -g
 LDFLAGS = -lcrypto -lssl -lresolv
-
-SUBJECT_BLOB=/C=IT/ST=Padova/L=Padova/O=Global Security/OU=IT Department/CN=
+USERID=anythinggoes
+SUBJECT_BLOB=/C=IT/ST=Padova/L=Padova/O=Global Security/OU=IT Department/UID=$(USERID)/CN=
 KEY_PATH=keys/
 
 #Self signed root certificate authority
@@ -65,7 +65,7 @@ $(C_KEY): $(KEY_PATH)
 	openssl genrsa -out $(C_KEY) $(RSASTRENGTH)
 
 $(C_CERT): $(C_KEY) $(CA_CERT) $(KEY_PATH)
-		# Create sign request
+	# Create sign request
 	openssl req -new -key $(C_KEY) -out $(KEY_PATH)c_signreq.csr -subj $(C_SUBJECT)
 	# Validate it
 	#openssl req -in s_signreq.csr -noout -text
@@ -74,6 +74,9 @@ $(C_CERT): $(C_KEY) $(CA_CERT) $(KEY_PATH)
 	# Validate it
 	#openssl x509 -in $(CA_CERT) -text -noout
 
+show:
+	# Demonstrate the UID
+	openssl x509 -in keys/client_cert.pem -text -noout -nameopt oid
 
 clean:
 	rm -f *.o core openssl keys/*
