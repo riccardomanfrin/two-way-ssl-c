@@ -1,6 +1,6 @@
 Mix.install([{:cowboy, "~> 2.9.0"}])
 
-certsPath = '../keys'
+certsPath = 'keys'
 
 defmodule Toppage do
   def init(req, userctx) do
