@@ -2,7 +2,7 @@ CC = /usr/bin/g++
 CFLAGS = -Wall -Werror -g
 LDFLAGS = -lcrypto -lssl -lresolv
 USERID="anythinggoes"
-SUBJECT_BLOB=/C=IT/ST=Padova/L=Padova/O=Global Security/OU=IT Department/UID=$(USERID)/CN=
+SUBJECT_BLOB=/C=IT/ST=Padova/L=Padova/O=Global Security/OU=IT Department/CN=
 KEY_PATH=keys/
 
 #Self signed root certificate authority
@@ -21,7 +21,7 @@ S_SUBJECT="$(SUBJECT_BLOB)$(S_DOMAIN)"
 C_KEY=$(KEY_PATH)client_key.pem
 C_CERT=$(KEY_PATH)client_cert.pem
 C_DOMAIN="client.localhost"
-C_SUBJECT="$(SUBJECT_BLOB)$(C_DOMAIN)"
+C_SUBJECT="$(SUBJECT_BLOB)$(C_DOMAIN)/UID=$(USERID)"
 P12=$(KEY_PATH)client.p12
 P12PASS=foo
 
