@@ -35,3 +35,6 @@ Modify `S_DOMAIN=localhost` in `Makefile`
 
     make start_client
 
+### Elixir server with client auth on UID (userid)
+
+    elixir elixir/server.exs 8443 1000
