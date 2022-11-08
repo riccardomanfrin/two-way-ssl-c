@@ -1,12 +1,9 @@
-# Two-way SSL authentication example in C
+# Two-way SSL authentication example in C and in Elixir
 
 A simple example program that demonstrates two-way authentication between a client
 and the server.
 
-There are a couple of things to be noted here:
-
-1. Don't plugin this code directly into multi-threaded applications, you need to call some additional routines so that OpenSSL routines become reentrant.
-2. You can generate the keys by looking at [this gist](https://gist.github.com/zapstar/4b51d7cfa74c7e709fcdaace19233443).
+Note: For the C code, don't plugin this code directly into multi-threaded applications, you need to call some additional routines so that OpenSSL routines become reentrant.
 
 ## Steps to run the example
 
