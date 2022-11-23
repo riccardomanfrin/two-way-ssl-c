@@ -16,21 +16,21 @@ SUBJECT_BLOB=/C=IT/ST=Padova/L=Padova/O=Global Security/OU=IT Department/CN=
 KEY_PATH=keys/
 
 #Self signed root certificate authority
-CA_KEY=$(KEY_PATH)x1_ca_key.pem
-CA_CERT=$(KEY_PATH)x1_ca_cert.pem
+CA_KEY=$(KEY_PATH)ca_key.pem
+CA_CERT=$(KEY_PATH)ca_cert.pem
 CA_DOMAIN="ca.localhost"
 CA_SUBJECT="$(SUBJECT_BLOB)$(CA_DOMAIN)"
 
 #Server certificate and key
-IP=172.21.5.65
-S_KEY=$(KEY_PATH)x1_server_key.pem
-S_CERT=$(KEY_PATH)x1_server_cert.pem
+IP=127.0.0.1
+S_KEY=$(KEY_PATH)server_key.pem
+S_CERT=$(KEY_PATH)server_cert.pem
 S_DOMAIN="$(IP)"
 S_SUBJECT="$(SUBJECT_BLOB)$(S_DOMAIN)"
 S_ALTNAME="subjectAltName=IP:$(IP)"
 #Client certificate and key
-C_KEY=$(KEY_PATH)x1_client_key.pem
-C_CERT=$(KEY_PATH)x1_client_cert.pem
+C_KEY=$(KEY_PATH)client_key.pem
+C_CERT=$(KEY_PATH)client_cert.pem
 C_DOMAIN="client.localhost"
 C_SUBJECT="$(SUBJECT_BLOB)$(C_DOMAIN)/UID=$(USERID)"
 P12=$(KEY_PATH)client.p12
