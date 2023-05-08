@@ -30,7 +30,9 @@ int main(int argc, const char * argv[]) {
     if (argc != 6) {
         usage(); return -1;
     } else if (!strcmp(argv[1], "server")) {
-        return server(argv[2], argv[3], argv[4], argv[5]);
+        while (1) {
+            server(argv[2], argv[3], argv[4], argv[5]);
+        }
     } else if (!strcmp(argv[1], "client")) {
         return client(argv[2], argv[3], argv[4], argv[5]);
     } else {
