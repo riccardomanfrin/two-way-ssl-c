@@ -21,17 +21,20 @@ CA_CERT=$(KEY_PATH)ca_cert.pem
 CA_DOMAIN="ca.localhost"
 CA_SUBJECT="$(SUBJECT_BLOB)$(CA_DOMAIN)"
 
-#Server certificate and key
+#Server certificate and key 
+#IP=172.21.5.65
 IP=127.0.0.1
 S_KEY=$(KEY_PATH)server_key.pem
+S_SREQ=$(KEY_PATH)s_signreq.csr
 S_CERT=$(KEY_PATH)server_cert.pem
 S_DOMAIN="$(IP)"
 S_SUBJECT="$(SUBJECT_BLOB)$(S_DOMAIN)"
 S_ALTNAME="subjectAltName=IP:$(IP)"
 #Client certificate and key
 C_KEY=$(KEY_PATH)client_key.pem
+C_SREQ=$(KEY_PATH)c_signreq.csr
 C_CERT=$(KEY_PATH)client_cert.pem
-C_DOMAIN="client.localhost"
+C_DOMAIN="192.168.178.101"
 C_SUBJECT="$(SUBJECT_BLOB)$(C_DOMAIN)/UID=$(USERID)"
 P12=$(KEY_PATH)client.p12
 P12PASS=foo
@@ -41,10 +44,13 @@ CFLAGS=-g -ggdb
 
 RSALEN=4096
 
-all: build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) $(KEY_PATH) $(P12)
+all: x1x2 build $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) $(KEY_PATH) $(P12) $(S_SREQ) $(C_SREQ)
 
 build: client.h server.h
 	$(CC) $(CFLAGS) -o openssl main.cpp sslsocket.cpp client.cpp server.cpp $(LDFLAGS)
+
+x1x2: $(CA_KEY) $(CA_CERT) $(S_KEY) $(S_CERT) $(C_KEY) $(C_CERT) $(KEY_PATH) $(P12) 
+	./x1x2.sh
 
 $(KEY_PATH):
 	mkdir -p $(KEY_PATH)
@@ -65,38 +71,50 @@ $(CA_CERT): $(CA_KEY) $(KEY_PATH)
 $(S_KEY): $(KEY_PATH)
 	openssl genrsa -out $(S_KEY) $(RSASTRENGTH)
 
-$(S_CERT): $(S_KEY) $(CA_CERT) $(KEY_PATH) $(S_CERT_EXT)
+$(S_SREQ): $(S_KEY)
 	# Create sign request
-	openssl req -new -key $(S_KEY) -out $(KEY_PATH)s_signreq.csr -subj $(S_SUBJECT) -addext $(S_ALTNAME)
+	openssl req -new -key $(S_KEY) -out $(S_SREQ) -subj $(S_SUBJECT) -addext $(S_ALTNAME)
+
+$(S_CERT): $(S_KEY) $(CA_CERT) $(KEY_PATH) $(S_CERT_EXT) $(S_SREQ)
 	# Validate it
 	#openssl req -in s_signreq.csr -noout -text
 	# Create server cert
-	openssl x509 -req -in $(KEY_PATH)s_signreq.csr -extensions usr_cert -extfile $(S_CERT_EXT) -CA $(CA_CERT) -CAkey $(CA_KEY) -CAcreateserial -out $(S_CERT) -days 500 -sha256
+	openssl x509 -req -in $(S_SREQ) -extensions usr_cert -extfile $(S_CERT_EXT) -CA $(CA_CERT) -CAkey $(CA_KEY) -CAcreateserial -out $(S_CERT) -days 500 -sha256
 	# Validate it
 	#openssl x509 -in $(S_CERT) -text -noout
 
 $(C_KEY): $(KEY_PATH)
 	openssl genrsa -out $(C_KEY) $(RSASTRENGTH)
 
-$(C_CERT): $(C_KEY) $(CA_CERT) $(KEY_PATH)
+$(C_SREQ): $(C_KEY)
 	# Create sign request
-	openssl req -new -key $(C_KEY) -out $(KEY_PATH)c_signreq.csr -subj $(C_SUBJECT)
+	openssl req -new -key $(C_KEY) -out $(S_SREQ) -subj $(S_SUBJECT) -addext $(S_ALTNAME)
+
+$(C_CERT): $(C_KEY) $(CA_CERT) $(KEY_PATH) $(C_SREQ)
+	# Create sign request
+	openssl req -new -key $(C_KEY) -out $(C_SREQ) -subj $(C_SUBJECT)
 	# Validate it
 	#openssl req -in s_signreq.csr -noout -text
 	# Create server cert
-	openssl x509 -req -in $(KEY_PATH)c_signreq.csr -CA $(CA_CERT) -CAkey $(CA_KEY) -CAcreateserial -out $(C_CERT) -days 500 -sha256
+	openssl x509 -req -in $(C_SREQ) -CA $(CA_CERT) -CAkey $(CA_KEY) -CAcreateserial -out $(C_CERT) -days 500 -sha256
 	# Validate it
 	#openssl x509 -in $(CA_CERT) -text -noout
 
 show:
 	# Demonstrate the UID
-	openssl x509 -in keys/client_cert.pem -text -noout -nameopt oid
+	openssl x509 -in $(C_CERT) -text -noout -nameopt oid
 
 clean:
-	rm -f *.o core openssl keys/*
+	rm -f *.o core openssl $(S_KEY) $(S_SREQ) $(S_CERT) $(C_KEY) $(C_SREQ) $(C_CERT) $(S_CERT_EXT) $(P12) $(KEY_PATH)/x1_* $(KEY_PATH)/x2_*
+
+clean_ca:
+	rm -f $(CA_KEY) $(CA_CERT) 
 
 start_server:
 	./openssl server 127.0.0.1:8888 $(CA_CERT) $(S_CERT) $(S_KEY)
 
 start_client:
 	./openssl client 127.0.0.1:8888 $(CA_CERT) $(C_CERT) $(C_KEY)
+
+
+.PHONY: x1x2
