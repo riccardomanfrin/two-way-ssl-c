@@ -12,6 +12,7 @@ CC = /usr/bin/g++
 CFLAGS = -Wall -Werror -g
 LDFLAGS = -lcrypto -lssl -lresolv
 USERID="anythinggoes"
+NEID="AthonetNEIdentifier"
 SUBJECT_BLOB=/C=IT/ST=Italy/L=Bolzano Vicentino/O=Global Security/OU=IT Department/CN=
 KEY_PATH=keys/
 
@@ -23,12 +24,13 @@ CA_SUBJECT="$(SUBJECT_BLOB)$(CA_DOMAIN)"
 
 #Server certificate and key 
 #IP=172.21.5.65
-IP=license.lan.athonet.com
+#IP=127.0.0.1
+IP=localhost
 S_KEY=$(KEY_PATH)server_key.pem
 S_SREQ=$(KEY_PATH)s_signreq.csr
 S_CERT=$(KEY_PATH)server_cert.pem
 S_DOMAIN="$(IP)"
-S_SUBJECT="$(SUBJECT_BLOB)$(S_DOMAIN)"
+S_SUBJECT="$(SUBJECT_BLOB)$(S_DOMAIN)/UID=$(NEID)"
 #S_ALTNAME="-addext subjectAltName=IP:$(IP)"
 #Client certificate and key
 C_KEY=$(KEY_PATH)client_key.pem
