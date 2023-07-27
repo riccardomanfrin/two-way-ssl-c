@@ -107,7 +107,7 @@ show:
 	openssl x509 -in $(C_CERT) -text -noout -nameopt oid
 
 clean:
-	rm -f *.o core openssl $(S_KEY) $(S_SREQ) $(S_CERT) $(C_KEY) $(C_SREQ) $(C_CERT) $(S_CERT_EXT) $(P12) $(KEY_PATH)/x1_* $(KEY_PATH)/x2_*
+	rm -f *.o core openssl $(S_KEY) $(S_SREQ) $(S_CERT) $(C_KEY) $(C_SREQ) $(C_CERT) $(S_CERT_EXT) $(P12) $(CA_KEY) $(CA_CERT) $(KEY_PATH)/x1_* $(KEY_PATH)/x2_*
 
 clean_ca:
 	rm -f $(CA_KEY) $(CA_CERT) 
