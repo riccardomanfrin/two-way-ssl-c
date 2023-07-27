@@ -62,7 +62,7 @@ $(P12): $(C_CERT) $(C_KEY) $(CA_CERT)
 	openssl pkcs12 -export -out $(P12) -inkey $(C_KEY) -in $(C_CERT) -certfile $(CA_CERT) -passout pass:$(P12PASS)
 
 $(S_CERT_EXT): $(KEY_PATH)
-	echo "[ usr_cert ]\nbasicConstraints=CA:FALSE\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid,issuer" > $(S_CERT_EXT)
+	echo "[ usr_cert ]\nbasicConstraints=CA:FALSE\nsubjectKeyIdentifier=hash\nauthorityKeyIdentifier=keyid,issuer\nsubjectAltName=IP:127.0.0.1" > $(S_CERT_EXT)
 
 $(CA_KEY): $(KEY_PATH)
 	openssl genrsa -out $(CA_KEY) $(RSASTRENGTH)

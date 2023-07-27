@@ -1,0 +1,5 @@
+[ usr_cert ]
+basicConstraints=CA:FALSE
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+subjectAltName=IP:127.0.0.1
